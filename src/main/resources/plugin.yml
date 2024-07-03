@@ -1,0 +1,6 @@
+name: Duels
+main: it.maxigame.duels.Duels
+author: Maxigame99
+version: 1.0
+commands:
+  duel:
