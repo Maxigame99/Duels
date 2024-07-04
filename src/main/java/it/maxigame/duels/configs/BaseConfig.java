@@ -7,7 +7,7 @@ public enum BaseConfig {
 
     NONE("NONE");
 
-    private static final FileConfiguration config = Duels.getConfig();
+    private static final FileConfiguration config = Duels.getConfigYaml();
     String dir;
 
     BaseConfig(String dir) {

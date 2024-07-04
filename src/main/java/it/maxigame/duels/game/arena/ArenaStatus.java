@@ -1,5 +1,5 @@
 package it.maxigame.duels.game.arena;
 
 public enum ArenaStatus {
-    CLEANING, READY
+    BATTLING, CLEANING, READY
 }

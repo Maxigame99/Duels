@@ -1,8 +1,8 @@
 MySQL:
-  address: 168.64.117.48
-  port: 3306
-  username: x
-  password: x
-  database: duels
+  address: none
+  port: none
+  username: none
+  password: none
+  database: none
 
-arena-locations:
+arena-locations: []

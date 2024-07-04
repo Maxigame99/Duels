@@ -4,3 +4,6 @@ author: Maxigame99
 version: 1.0
 commands:
   duel:
+  arenas:
+  setarena:
+  delarena:

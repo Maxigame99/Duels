@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.function.Consumer;
 
 public class KitSelectorInventory implements InventoryHolder {
-    private final String TITLE = "Selectiona il kit...";
+    private final String TITLE = "Seleziona il kit...";
 
     private final ArrayList<KitHolder> kits = KitManager.getKits();
     private final int[] invSizes = {9, 18, 27, 36, 45, 54};
@@ -31,7 +31,7 @@ public class KitSelectorInventory implements InventoryHolder {
 
     private int calcSize() {
         int length = kits.size();
-        int div = Math.min((length / 9)-1, 0);
+        int div = (int) Math.min(Math.ceil((length / 9)-1), 0);
         return invSizes[div];
     }
 

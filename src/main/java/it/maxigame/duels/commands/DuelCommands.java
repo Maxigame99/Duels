@@ -18,18 +18,22 @@ import java.util.function.Consumer;
 
 public class DuelCommands implements CommandExecutor {
 
-    static final String[] HELP_MESSAGE = new String[]{
+    private static final String[] HELP_MESSAGE = new String[]{
             "§fDuels commands - §7(by Maxigame99)",
-            "§e§l/duel <player>",
+            "§6§l/duel <player>",
             "§e/duel accept <player>",
             "§e/duel reject <player>",
     };
-    static final String PLAYER_NOT_FOUND = "§cGiocatore non trovato!";
+    private static final String PLAYER_NOT_FOUND = "§cGiocatore non trovato!";
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
         if (!(sender instanceof Player)) {
             sender.sendMessage("§cComando eseguibile solamente da giocatore.");
+            return false;
+        }
+        if (!sender.hasPermission("duels.admin")) {
+            sender.sendMessage("§cNon hai accesso a questo comando.");
             return false;
         }
         if (args.length==0) {
@@ -49,7 +53,11 @@ public class DuelCommands implements CommandExecutor {
             case "refuse":
                 return refuseDuel(Bukkit.getPlayer(args[1]), cmdSender);
         }
-        Player receiverPlayer = Bukkit.getPlayer(args[1]);
+        Player receiverPlayer = Bukkit.getPlayer(subcommand);
+        if (receiverPlayer == cmdSender) {
+            cmdSender.sendMessage("§cNon puoi duellare con te stesso! xd");
+            return false;
+        }
         if (DuelManager.isDueling(receiverPlayer)) {
             cmdSender.sendMessage("§c"+receiverPlayer.getName()+" è attualmente in un duello!");
             return false;

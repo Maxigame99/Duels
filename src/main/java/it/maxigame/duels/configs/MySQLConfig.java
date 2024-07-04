@@ -12,8 +12,8 @@ public enum MySQLConfig {
 
     DATABASE("database");
 
-    private static final FileConfiguration config = Duels.getConfig();
-    String dir;
+    private static final FileConfiguration config = Duels.getConfigYaml();
+    final String dir;
 
     MySQLConfig(String dir) {
         this.dir = "MySQL."+dir;

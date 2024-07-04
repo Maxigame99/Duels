@@ -7,7 +7,6 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
 public class DuelRefuseEvent extends Event {
-    @Getter
     private static final HandlerList handlers = new HandlerList();
 
     @Getter
@@ -21,6 +20,9 @@ public class DuelRefuseEvent extends Event {
 
     @Override
     public @NotNull HandlerList getHandlers() {
+        return handlers;
+    }
+    public static HandlerList getHandlerList() {
         return handlers;
     }
 

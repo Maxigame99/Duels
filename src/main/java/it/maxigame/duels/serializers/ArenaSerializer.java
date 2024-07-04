@@ -13,13 +13,13 @@ public class ArenaSerializer {
         String spawn1 = LocationSerializer.serialize(arena.getSpawn1());
         String spawn2 = LocationSerializer.serialize(arena.getSpawn2());
 
-        return String.format("%s,%s,%s,%s", name, region1, region2, spawn1, spawn2);
+        return String.format("%s;%s;%s;%s", name, region1, region2, spawn1, spawn2);
     }
 
     public static Arena deserialize(String arena) {
-        String[] args = arena.split(",");
+        String[] args = arena.split(";");
         try {
-            if (args.length != 5)
+            if (args.length < 5)
                 throw new InvalidSerializationException("Invalid serialization for: "+Arena.class.getName());
             String name = args[0];
             Location region1 = LocationSerializer.deserialize(args[1]);

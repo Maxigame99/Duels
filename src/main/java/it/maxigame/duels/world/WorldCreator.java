@@ -5,19 +5,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.WorldType;
 
-@Getter
 public class WorldCreator {
 
     private static final String DUELS_WORLD = "duels";
-    private World world;
+    @Getter
+    private static World world;
 
-
-    public WorldCreator() {
-        worldInit();
-    }
-
-
-    private void worldInit() {
+    public static void worldInit() {
+        System.out.println("§eInitializing world...");
         World world = Bukkit.getWorld(DUELS_WORLD);
         if (world == null) {
             world = Bukkit.createWorld(new org.bukkit.WorldCreator(DUELS_WORLD)
@@ -25,7 +20,8 @@ public class WorldCreator {
                     .generateStructures(false)
                     .generatorSettings(""));
         }
-        this.world = world;
+        WorldCreator.world = world;
+        System.out.println("§eDone!");
     }
 
 }
