@@ -1,9 +1,8 @@
 package it.maxigame.duels.game.duel;
 
 import it.maxigame.duels.Duels;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import it.maxigame.duels.api.DuelRefuseEvent;
+import it.maxigame.duels.api.DuelStartEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -15,7 +14,7 @@ public class DuelManager {
     private final static ArrayList<Duel> duels = new ArrayList<>();
     private final static HashMap<Duel, BukkitTask> duelTasks = new HashMap<>();
 
-    private final static ArrayList<Player> playersDueling = new ArrayList<>();
+    private final static HashMap<Player, Duel> playersDueling = new HashMap<>();
 
     public static Duel getDuel(Player requester, Player receiver) {
         for (Duel duel : duels)
@@ -23,11 +22,18 @@ public class DuelManager {
                 return duel;
         return null;
     }
+    public static Duel getDuel(Player duelingPlayer) {
+        return playersDueling.get(duelingPlayer);
+    }
+
+    public static boolean isDueling(Player player) {
+        return playersDueling.containsKey(player);
+    }
 
     public static boolean requestDuel(Duel duel) {
         Player requester = duel.getRequester();
         Player receiver = duel.getReceiver();
-        if (playersDueling.contains(requester) || playersDueling.contains(receiver))
+        if (playersDueling.containsKey(requester) || playersDueling.containsKey(receiver))
             return false;
 
         duels.add(duel);
@@ -40,14 +46,19 @@ public class DuelManager {
         return true;
     }
 
+    public static void acceptDuel(Duel duel) {
+        playersDueling.put(duel.getRequester(), duel);
+        playersDueling.put(duel.getReceiver(), duel);
+        duel.setStatus(DuelStatus.STARTING);
+        duelTasks.remove(duel);
+        Bukkit.getPluginManager().callEvent(new DuelStartEvent(duel));
+    }
 
     public static void refuseDuel(Duel duel) {
-        Player requester = duel.getRequester();
-        Player receiver = duel.getReceiver();
-
+        playersDueling.remove(duel.getReceiver());
+        playersDueling.remove(duel.getReceiver());
         duels.remove(duel);
         duelTasks.remove(duel);
-
-
+        Bukkit.getPluginManager().callEvent(new DuelRefuseEvent(duel, DuelRefuseEvent.RefuseCause.REJECTED));
     }
 }

@@ -24,11 +24,10 @@ public class DuelCommands implements CommandExecutor {
             "§e/duel accept <player>",
             "§e/duel reject <player>",
     };
-
+    static final String PLAYER_NOT_FOUND = "§cGiocatore non trovato!";
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String[] args) {
-
         if (!(sender instanceof Player)) {
             sender.sendMessage("§cComando eseguibile solamente da giocatore.");
             return false;
@@ -37,28 +36,64 @@ public class DuelCommands implements CommandExecutor {
             sender.sendMessage(HELP_MESSAGE);
             return false;
         }
+        Player cmdSender = (Player) sender;
+        if (DuelManager.isDueling(cmdSender)) {
+            cmdSender.sendMessage("§cSei attualmente in un duello!");
+            return false;
+        }
 
         String subcommand = args[0];
         switch (subcommand.toLowerCase()) {
             case "accept":
-                Player requester = Bukkit.getPlayer(args[1]);
-                return true;
+                return acceptDuel(Bukkit.getPlayer(args[1]), cmdSender);
             case "refuse":
-                return true;
+                return refuseDuel(Bukkit.getPlayer(args[1]), cmdSender);
         }
-        Player requesterPlayer = (Player) sender;
+        Player receiverPlayer = Bukkit.getPlayer(args[1]);
+        if (DuelManager.isDueling(receiverPlayer)) {
+            cmdSender.sendMessage("§c"+receiverPlayer.getName()+" è attualmente in un duello!");
+            return false;
+        }
+
         Consumer<KitHolder> onSelect = (kit) -> {
-            Player receiverPlayer = Bukkit.getPlayer(subcommand);
-            Duel duel = new Duel(requesterPlayer, receiverPlayer, kit);
+            Duel duel = new Duel(cmdSender, receiverPlayer, kit);
             if (DuelManager.requestDuel(duel))
                 sendRequestMessage(duel);
         };
-        new KitSelectorInventory(onSelect).open(requesterPlayer);
+        new KitSelectorInventory(onSelect).open(cmdSender);
 
 
         return true;
     }
 
+
+
+    private static boolean acceptDuel(Player requester, Player receiver) {
+        if (requester==null) {
+            receiver.sendMessage(PLAYER_NOT_FOUND);
+            return false;
+        }
+        Duel duel = DuelManager.getDuel(requester, receiver);
+        if (duel==null) {
+            receiver.sendMessage("§cNon hai nessun duello in attesa con "+requester.getName());
+            return false;
+        }
+        DuelManager.acceptDuel(duel);
+        return true;
+    }
+    private static boolean refuseDuel(Player requester, Player receiver) {
+        if (requester==null) {
+            receiver.sendMessage(PLAYER_NOT_FOUND);
+            return false;
+        }
+        Duel duel = DuelManager.getDuel(requester, receiver);
+        if (duel==null) {
+            receiver.sendMessage("§cNon hai nessun duello in attesa con "+requester.getName());
+            return false;
+        }
+        DuelManager.refuseDuel(duel);
+        return true;
+    }
 
     private static void sendRequestMessage(Duel duel) {
         String requesterName = duel.getRequester().getName();

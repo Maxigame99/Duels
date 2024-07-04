@@ -5,17 +5,20 @@ import it.maxigame.duels.game.kit.KitHolder;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.PlayerInventory;
 
 @Getter
+@Setter
 public class Duel {
 
-    private KitHolder kit;
-    @Setter
+    private final KitHolder kit;
     private Arena arena;
     private DuelStatus status = DuelStatus.REQUESTED;
 
     private final Player requester;
+    private PlayerInventory requesterInventory;
     private final Player receiver;
+    private PlayerInventory receiverInventory;
 
     public Duel(Player requester, Player receiver, KitHolder kit) {
         this.requester = requester;
