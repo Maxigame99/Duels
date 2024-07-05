@@ -5,7 +5,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 public enum BaseConfig {
 
-    NONE("NONE");
+    REWARDS("NONE");
 
     private static final FileConfiguration config = Duels.getConfigYaml();
     String dir;

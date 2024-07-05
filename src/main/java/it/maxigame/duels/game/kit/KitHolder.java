@@ -1,12 +1,13 @@
 package it.maxigame.duels.game.kit;
 
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.ItemStack;
 
 public interface KitHolder {
 
     String getName();
-    String getDisplayItem();
+    ItemStack getDisplayItem();
     String getAuthor();
 
-    PlayerInventory getPlayerInventory();
+    ItemStack[] getArmorSet();
+    ItemStack[] getContent();
 }

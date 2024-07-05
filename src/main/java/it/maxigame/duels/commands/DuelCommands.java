@@ -1,5 +1,6 @@
 package it.maxigame.duels.commands;
 
+import it.maxigame.duels.api.DuelRefuseEvent;
 import it.maxigame.duels.game.duel.Duel;
 import it.maxigame.duels.game.duel.DuelManager;
 import it.maxigame.duels.game.kit.KitHolder;
@@ -32,10 +33,6 @@ public class DuelCommands implements CommandExecutor {
             sender.sendMessage("§cComando eseguibile solamente da giocatore.");
             return false;
         }
-        if (!sender.hasPermission("duels.admin")) {
-            sender.sendMessage("§cNon hai accesso a questo comando.");
-            return false;
-        }
         if (args.length==0) {
             sender.sendMessage(HELP_MESSAGE);
             return false;
@@ -45,7 +42,10 @@ public class DuelCommands implements CommandExecutor {
             cmdSender.sendMessage("§cSei attualmente in un duello!");
             return false;
         }
-
+        if (args.length>1 && !sender.hasPermission("duels.admin")) {
+            sender.sendMessage("§cNon hai accesso a questo comando.");
+            return false;
+        }
         String subcommand = args[0];
         switch (subcommand.toLowerCase()) {
             case "accept":
@@ -68,7 +68,7 @@ public class DuelCommands implements CommandExecutor {
             if (DuelManager.requestDuel(duel))
                 sendRequestMessage(duel);
         };
-        new KitSelectorInventory(onSelect).open(cmdSender);
+        new KitSelectorInventory(cmdSender, onSelect).open();
 
 
         return true;
@@ -86,7 +86,7 @@ public class DuelCommands implements CommandExecutor {
             receiver.sendMessage("§cNon hai nessun duello in attesa con "+requester.getName());
             return false;
         }
-        DuelManager.acceptDuel(duel);
+        DuelManager.startDuel(duel);
         return true;
     }
     private static boolean refuseDuel(Player requester, Player receiver) {
@@ -99,12 +99,14 @@ public class DuelCommands implements CommandExecutor {
             receiver.sendMessage("§cNon hai nessun duello in attesa con "+requester.getName());
             return false;
         }
-        DuelManager.refuseDuel(duel);
+        DuelManager.cancelDuel(duel);
+        Bukkit.getPluginManager().callEvent(new DuelRefuseEvent(duel, DuelRefuseEvent.RefuseCause.REJECTED));
         return true;
     }
 
     private static void sendRequestMessage(Duel duel) {
-        String requesterName = duel.getRequester().getName();
+        Player requester = duel.getRequester();
+        String requesterName = requester.getName();
         Player receiver = duel.getReceiver();
         String kitName = duel.getKit().getName();
         BaseComponent descriptionLine = new TextComponent("§e"+requesterName+" §avorrebbe duellare con te. Kit: §b"+kitName);
@@ -112,17 +114,19 @@ public class DuelCommands implements CommandExecutor {
 
         // Building button line
         BaseComponent refuseButton = new TextComponent("§c§l[RIFIUTA]");
-        refuseButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/duels refuse "+requesterName));
+        refuseButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/duel refuse "+requesterName));
 
         BaseComponent spacer = new TextComponent("    ");
 
         BaseComponent acceptButton = new TextComponent("§a§l[ACCEPT]");
-        acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/duels accept "+requesterName));
+        acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/duel accept "+requesterName));
         buttonLine.addExtra(refuseButton);
         buttonLine.addExtra(spacer);
         buttonLine.addExtra(acceptButton);
         //
 
-        receiver.sendMessage(descriptionLine, buttonLine);
+        receiver.sendMessage(descriptionLine);
+        receiver.sendMessage(buttonLine);
+        requester.sendMessage("§aHai inviato la richiesta di duello a §e"+receiver.getName()+"§a!");
     }
 }

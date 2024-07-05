@@ -6,10 +6,10 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+@Getter
 public class DuelStartEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
-    @Getter
     private final Duel duel;
 
     public DuelStartEvent(Duel duel) {

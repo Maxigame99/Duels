@@ -1,5 +1,6 @@
 package it.maxigame.duels.data;
 
+import it.maxigame.duels.data.cache.CacheHandler;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;

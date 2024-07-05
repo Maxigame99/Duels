@@ -3,7 +3,7 @@ package it.maxigame.duels.game.duel;
 import it.maxigame.duels.Duels;
 import it.maxigame.duels.api.DuelEndEvent;
 import it.maxigame.duels.api.DuelStartEvent;
-import it.maxigame.duels.data.CacheHandler;
+import it.maxigame.duels.data.cache.CacheHandler;
 import it.maxigame.duels.game.arena.Arena;
 import it.maxigame.duels.game.arena.ArenaAgent;
 import it.maxigame.duels.game.arena.ArenaStatus;
@@ -14,9 +14,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -30,6 +32,19 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onMove(PlayerMoveEvent event) {
         if (DuelManager.isDueling(event.getPlayer()))
+            event.setCancelled(true);
+    }
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onTeleport(PlayerTeleportEvent event) {
+        if (DuelManager.isDueling(event.getPlayer()) && event.getCause() != PlayerTeleportEvent.TeleportCause.PLUGIN)
+            event.setCancelled(true);
+    }
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onFoodLevelChange(FoodLevelChangeEvent event) {
+        if (!(event.getEntity() instanceof Player))
+            return;
+        Player player = (Player) event.getEntity();
+        if (DuelManager.isDueling(player))
             event.setCancelled(true);
     }
 
@@ -57,28 +72,20 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDuelStartEvent(DuelStartEvent event) {
         Duel duel = event.getDuel();
+        Arena arena = duel.getArena();
         Player requester = duel.getRequester();
         Player receiver = duel.getReceiver();
 
-        // calculate the arena
-        Arena arena = ArenaAgent.calculareArena();
-        if (arena == null) {
-            requester.sendMessage("§cNon ci sono arene disponibili!");
-            receiver.sendMessage("§cNon ci sono arene disponibili!");
-            return;
-        }
         arena.setStatus(ArenaStatus.BATTLING);
-        duel.setArena(arena);
-
         requester.sendMessage("§e" + receiver.getName() + " §aha accettato il duello!");
         // change inventories
-        duel.setRequesterInventory(requester.getInventory());
-        duel.setReceiverInventory(receiver.getInventory());
+        duel.setRequesterStorage(new InventoryStorage(requester));
+        duel.setReceiverStorage(new InventoryStorage(receiver));
         KitManager.assignKit(duel.getKit(), requester, receiver);
 
         // teleport players to arena
-        requester.teleport(arena.getSpawn1());
-        receiver.teleport(arena.getSpawn2());
+        requester.teleport(arena.getSpawn1(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+        receiver.teleport(arena.getSpawn2(), PlayerTeleportEvent.TeleportCause.PLUGIN);
 
         AtomicInteger counter = new AtomicInteger(3);
         Bukkit.getScheduler().runTaskTimerAsynchronously(Duels.getInstance(), (task) -> {
@@ -105,6 +112,8 @@ public class EventListener implements Listener {
     public void onDuelEndEvent(DuelEndEvent event) {
         Player winner = event.getWinner();
         Player loser = event.getLoser();
+        Duel duel = event.getDuel();
+        DuelManager.reassignInventories(duel);
 
         winner.sendMessage("§aHai vinto lo scontro, COMPLIMENTI!");
         winner.playSound(loser.getLocation(), Sound.ENTITY_VILLAGER_YES, 2, 2);
@@ -115,7 +124,6 @@ public class EventListener implements Listener {
         cache.addWin(winner.getUniqueId());
         cache.addLoses(loser.getUniqueId());
 
-        Duel duel = event.getDuel();
         ArenaAgent.clearArena(duel.getArena());
         duel.setStatus(DuelStatus.ENDED);
     }

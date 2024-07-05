@@ -1,5 +1,7 @@
-package it.maxigame.duels.data;
+package it.maxigame.duels.data.cache;
 
+import it.maxigame.duels.data.DataModel;
+import it.maxigame.duels.data.MySQLConnector;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;

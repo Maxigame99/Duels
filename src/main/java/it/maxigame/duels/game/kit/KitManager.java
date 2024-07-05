@@ -29,13 +29,18 @@ public class KitManager {
     }
 
     public static void assignKit(KitHolder kit, Player... players) {
-        PlayerInventory kitInv = kit.getPlayerInventory();
-        ItemStack[] armor = kitInv.getArmorContents();
-        ItemStack[] content = kitInv.getStorageContents();
+        ItemStack[] armor = kit.getArmorSet();
+        ItemStack[] content = kit.getContent();
         for (Player player : players) {
-            player.getInventory().setArmorContents(armor);
-            player.getInventory().setContents(content);
+            PlayerInventory inv = player.getInventory();
+            inv.setArmorContents(armor);
+            inv.setContents(content);
+            inv.setHeldItemSlot(0);
             player.updateInventory();
+
+            player.setTotalExperience(0);
+            player.setHealth(20);
+            player.setFoodLevel(20);
         }
     }
 }

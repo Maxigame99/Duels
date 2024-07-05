@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class ArenaAgent {
         List<String> serializedArenas = arenas.values().stream().map(ArenaSerializer::serialize).toList();
         System.out.println("§e+ Writing...");
         Duels.getConfigYaml().set(ARENA_LOCATIONS_PATH, serializedArenas);
-        Duels.getInstance().saveConfig();
+        Duels.getInstance().saveDefaultConfig();
         System.out.println("§eDone!");
     }
 

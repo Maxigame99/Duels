@@ -16,9 +16,9 @@ public class Duel {
     private DuelStatus status = DuelStatus.REQUESTED;
 
     private final Player requester;
-    private PlayerInventory requesterInventory;
+    private InventoryStorage requesterStorage;
     private final Player receiver;
-    private PlayerInventory receiverInventory;
+    private InventoryStorage receiverStorage;
 
     public Duel(Player requester, Player receiver, KitHolder kit) {
         this.requester = requester;
