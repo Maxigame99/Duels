@@ -21,7 +21,7 @@ public class ArenaAgent {
     public static void laodArenas() {
         System.out.println("§eLoading all arenas...");
         List<String> serializedArenas = Duels.getConfigYaml().getStringList(ARENA_LOCATIONS_PATH);
-        if (serializedArenas!=null || !serializedArenas.isEmpty()) {
+        if (!serializedArenas.isEmpty()) {
             System.out.println("§e+ Deserializing all arenas...");
             serializedArenas.stream().map(ArenaSerializer::deserialize).filter(Objects::nonNull).forEach(a->arenas.put(a.getName(), a));
         }
@@ -33,7 +33,7 @@ public class ArenaAgent {
         List<String> serializedArenas = arenas.values().stream().map(ArenaSerializer::serialize).toList();
         System.out.println("§e+ Writing...");
         Duels.getConfigYaml().set(ARENA_LOCATIONS_PATH, serializedArenas);
-        Duels.getInstance().saveDefaultConfig();
+        Duels.getInstance().saveConfig();
         System.out.println("§eDone!");
     }
 

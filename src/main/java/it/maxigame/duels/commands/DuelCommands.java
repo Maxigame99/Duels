@@ -1,7 +1,7 @@
 package it.maxigame.duels.commands;
 
 import it.maxigame.duels.api.DuelRefuseEvent;
-import it.maxigame.duels.game.duel.Duel;
+import it.maxigame.duels.game.duel.model.Duel;
 import it.maxigame.duels.game.duel.DuelManager;
 import it.maxigame.duels.game.kit.KitHolder;
 import it.maxigame.duels.gui.KitSelectorInventory;
@@ -105,9 +105,9 @@ public class DuelCommands implements CommandExecutor {
     }
 
     private static void sendRequestMessage(Duel duel) {
-        Player requester = duel.getRequester();
+        Player requester = duel.getRequester().getPlayer();
         String requesterName = requester.getName();
-        Player receiver = duel.getReceiver();
+        Player receiver = duel.getReceiver().getPlayer();
         String kitName = duel.getKit().getName();
         BaseComponent descriptionLine = new TextComponent("§e"+requesterName+" §avorrebbe duellare con te. Kit: §b"+kitName);
         BaseComponent buttonLine = new TextComponent();

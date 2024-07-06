@@ -40,7 +40,6 @@ public class CreateArenaCommand implements CommandExecutor {
             }
             buildingArenas.put(player, new Arena(subcommand));
             sender.sendMessage("§eArena creata!");
-            sender.sendMessage(HELP_MESSAGE);
             return true;
         }
         Arena arena = buildingArenas.get(player);

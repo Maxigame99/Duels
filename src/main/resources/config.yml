@@ -5,4 +5,7 @@ MySQL:
   password: none
   database: none
 
+reward-item:
+  material: DIAMOND
+
 arena-locations: []

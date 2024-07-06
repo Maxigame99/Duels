@@ -1,6 +1,7 @@
 package it.maxigame.duels.game.kit;
 
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 public interface KitHolder {
 
@@ -8,6 +9,6 @@ public interface KitHolder {
     ItemStack getDisplayItem();
     String getAuthor();
 
-    ItemStack[] getArmorSet();
-    ItemStack[] getContent();
+    @NotNull ItemStack[] getArmorSet();
+    @NotNull ItemStack[] getContent();
 }

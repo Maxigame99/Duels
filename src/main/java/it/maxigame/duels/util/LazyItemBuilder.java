@@ -15,13 +15,13 @@ import java.util.*;
 @Accessors(fluent = true)
 @Setter
 public class LazyItemBuilder {
-    private Material material = Material.STONE;
+    private Material material = Material.AIR;
     private int amount = 1;
     private String name;
     private Color color;
     private List<String> lores = new ArrayList<>();
-    private final List<ItemFlag> flags = new ArrayList<>();
-    private final Map<Enchantment, Integer> enchantments = new HashMap<>();
+    private List<ItemFlag> flags = new ArrayList<>();
+    private Map<Enchantment, Integer> enchantments = new HashMap<>();
     private boolean unbreakable = false;
 
     public LazyItemBuilder addFlag(ItemFlag flag) {

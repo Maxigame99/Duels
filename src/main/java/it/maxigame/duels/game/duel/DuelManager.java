@@ -5,6 +5,8 @@ import it.maxigame.duels.api.DuelRefuseEvent;
 import it.maxigame.duels.api.DuelStartEvent;
 import it.maxigame.duels.game.arena.Arena;
 import it.maxigame.duels.game.arena.ArenaAgent;
+import it.maxigame.duels.game.duel.model.Duel;
+import it.maxigame.duels.game.duel.model.Dueller;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
@@ -27,14 +29,23 @@ public class DuelManager {
     public static Duel getDuel(Player duelingPlayer) {
         return playersDueling.get(duelingPlayer);
     }
+    public static Dueller getDueller(Player player) {
+        Duel duel = getDuel(player);
+        Dueller dueller = null;
+        if (duel.getReceiver().getPlayer() == player)
+            dueller = duel.getReceiver();
+        else if (duel.getRequester().getPlayer() == player)
+            dueller = duel.getRequester();
+        return dueller;
+    }
 
     public static boolean isDueling(Player player) {
         return playersDueling.containsKey(player);
     }
 
     public static boolean requestDuel(Duel duel) {
-        Player requester = duel.getRequester();
-        Player receiver = duel.getReceiver();
+        Player requester = duel.getRequester().getPlayer();
+        Player receiver = duel.getReceiver().getPlayer();
         if (playersDueling.containsKey(requester) || playersDueling.containsKey(receiver))
             return false;
 
@@ -52,8 +63,8 @@ public class DuelManager {
     public static void startDuel(Duel duel) {
         // calculate the arena
         Arena arena = ArenaAgent.calculareArena();
-        Player requester = duel.getRequester();
-        Player receiver = duel.getReceiver();
+        Player requester = duel.getRequester().getPlayer();
+        Player receiver = duel.getReceiver().getPlayer();
         if (arena == null) {
             requester.sendMessage("§cNon ci sono arene disponibili!");
             receiver.sendMessage("§cNon ci sono arene disponibili!");
@@ -67,19 +78,9 @@ public class DuelManager {
     }
 
     public static void cancelDuel(Duel duel) {
-        playersDueling.remove(duel.getReceiver());
-        playersDueling.remove(duel.getReceiver());
+        playersDueling.remove(duel.getReceiver().getPlayer());
+        playersDueling.remove(duel.getReceiver().getPlayer());
         duels.remove(duel);
         duelTasks.remove(duel).cancel();
-    }
-
-    public static void reassignInventories(Duel duel) {
-        Player req = duel.getRequester();
-        InventoryStorage reqInv = duel.getRequesterStorage();
-        Player rec = duel.getReceiver();
-        InventoryStorage recInv = duel.getReceiverStorage();
-
-        InventoryStorage.assignData(reqInv, req);
-        InventoryStorage.assignData(recInv, rec);
     }
 }

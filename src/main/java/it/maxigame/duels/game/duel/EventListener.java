@@ -3,10 +3,13 @@ package it.maxigame.duels.game.duel;
 import it.maxigame.duels.Duels;
 import it.maxigame.duels.api.DuelEndEvent;
 import it.maxigame.duels.api.DuelStartEvent;
+import it.maxigame.duels.configs.BaseConfig;
 import it.maxigame.duels.data.cache.CacheHandler;
 import it.maxigame.duels.game.arena.Arena;
 import it.maxigame.duels.game.arena.ArenaAgent;
 import it.maxigame.duels.game.arena.ArenaStatus;
+import it.maxigame.duels.game.duel.model.Duel;
+import it.maxigame.duels.game.duel.model.Dueller;
 import it.maxigame.duels.game.kit.KitManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -50,20 +53,20 @@ public class EventListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onDeath(PlayerDeathEvent event) {
-        Player loser = event.getEntity();
-        if (DuelManager.isDueling(loser)) {
-            Duel duel = DuelManager.getDuel(loser);
-            Player winner = duel.getReceiver()==loser ? duel.getRequester() : duel.getReceiver();
+        Dueller loser = DuelManager.getDueller(event.getEntity());
+        if (loser!=null) {
+            Duel duel = DuelManager.getDuel(loser.getPlayer());
+            Dueller winner = duel.getReceiver()==loser ? duel.getRequester() : duel.getReceiver();
             Bukkit.getPluginManager().callEvent(new DuelEndEvent(duel, winner, loser, DuelEndEvent.EndReason.DEATH));
         }
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onQuit(PlayerQuitEvent event) {
-        Player loser = event.getPlayer();
-        if (DuelManager.isDueling(loser)) {
-            Duel duel = DuelManager.getDuel(loser);
-            Player winner = duel.getReceiver()==loser ? duel.getRequester() : duel.getReceiver();
+        Dueller loser = DuelManager.getDueller(event.getPlayer());
+        if (loser!=null) {
+            Duel duel = DuelManager.getDuel(loser.getPlayer());
+            Dueller winner = duel.getReceiver()==loser ? duel.getRequester() : duel.getReceiver();
             Bukkit.getPluginManager().callEvent(new DuelEndEvent(duel, winner, loser, DuelEndEvent.EndReason.DISCONNECTED));
         }
     }
@@ -73,58 +76,68 @@ public class EventListener implements Listener {
     public void onDuelStartEvent(DuelStartEvent event) {
         Duel duel = event.getDuel();
         Arena arena = duel.getArena();
-        Player requester = duel.getRequester();
-        Player receiver = duel.getReceiver();
+        Dueller requester = duel.getRequester();
+        Player requesterPlayer = requester.getPlayer();
+
+        Dueller receiver = duel.getReceiver();
+        Player receiverPlayer = receiver.getPlayer();
 
         arena.setStatus(ArenaStatus.BATTLING);
-        requester.sendMessage("§e" + receiver.getName() + " §aha accettato il duello!");
+        requesterPlayer.sendMessage("§e" + receiverPlayer.getName() + " §aha accettato il duello!");
         // change inventories
-        duel.setRequesterStorage(new InventoryStorage(requester));
-        duel.setReceiverStorage(new InventoryStorage(receiver));
-        KitManager.assignKit(duel.getKit(), requester, receiver);
+        KitManager.assignKit(duel.getKit(), requesterPlayer, receiverPlayer);
 
         // teleport players to arena
-        requester.teleport(arena.getSpawn1(), PlayerTeleportEvent.TeleportCause.PLUGIN);
-        receiver.teleport(arena.getSpawn2(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+        requesterPlayer.teleport(arena.getSpawn1(), PlayerTeleportEvent.TeleportCause.PLUGIN);
+        receiverPlayer.teleport(arena.getSpawn2(), PlayerTeleportEvent.TeleportCause.PLUGIN);
 
         AtomicInteger counter = new AtomicInteger(3);
         Bukkit.getScheduler().runTaskTimerAsynchronously(Duels.getInstance(), (task) -> {
             if (counter.get() == 0) {
                 duel.setStatus(DuelStatus.DUELING);
-                requester.sendTitle("", "", 0, 1, 0);
-                receiver.sendTitle("", "", 0, 1, 0);
-                requester.playSound(requester.getLocation(), Sound.ENTITY_VILLAGER_YES, 2L, 2L);
-                receiver.playSound(receiver.getLocation(), Sound.ENTITY_VILLAGER_YES, 2L, 2L);
+                requesterPlayer.sendTitle("", "", 0, 1, 0);
+                receiverPlayer.sendTitle("", "", 0, 1, 0);
+                requesterPlayer.playSound(requester.getLocation(), Sound.ENTITY_VILLAGER_YES, 2L, 2L);
+                receiverPlayer.playSound(receiver.getLocation(), Sound.ENTITY_VILLAGER_YES, 2L, 2L);
                 task.cancel();
                 return;
             }
 
-            requester.sendTitle("§c§l" + counter.get(), "", 0, 100, 0);
-            receiver.sendTitle("§c§l" + counter.get(), "", 0, 100, 0);
+            requesterPlayer.sendTitle("§c§l" + counter.get(), "", 0, 100, 0);
+            receiverPlayer.sendTitle("§c§l" + counter.get(), "", 0, 100, 0);
 
-            requester.playSound(requester.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 2L, 2L);
-            receiver.playSound(receiver.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 2L, 2L);
+            requesterPlayer.playSound(requester.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 2L, 2L);
+            receiverPlayer.playSound(receiver.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 2L, 2L);
             counter.decrementAndGet();
         }, 10L, 20L);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDuelEndEvent(DuelEndEvent event) {
-        Player winner = event.getWinner();
-        Player loser = event.getLoser();
+        Dueller winner = event.getWinner();
+        Player winnerPlayer = winner.getPlayer();
+
+        Dueller loser = event.getLoser();
+        Player loserPlayer = loser.getPlayer();
+
         Duel duel = event.getDuel();
-        DuelManager.reassignInventories(duel);
+        DuelManager.cancelDuel(duel);
+        duel.setStatus(DuelStatus.ENDED);
 
-        winner.sendMessage("§aHai vinto lo scontro, COMPLIMENTI!");
-        winner.playSound(loser.getLocation(), Sound.ENTITY_VILLAGER_YES, 2, 2);
+        winner.assignData();
+        loser.assignData();
 
-        loser.sendMessage("§4Hai perso lo scontro :(");
-        loser.playSound(loser.getLocation(), Sound.ENTITY_ENDER_DRAGON_HURT, 2, 2);
+        winnerPlayer.sendMessage("§aHai vinto lo scontro, COMPLIMENTI!");
+        winnerPlayer.playSound(loser.getLocation(), Sound.ENTITY_VILLAGER_YES, 2, 2);
+        winnerPlayer.getInventory().addItem(BaseConfig.REWARDS.getItemStack());
 
-        cache.addWin(winner.getUniqueId());
-        cache.addLoses(loser.getUniqueId());
+        loserPlayer.sendMessage("§4Hai perso lo scontro :(");
+        loserPlayer.playSound(loser.getLocation(), Sound.ENTITY_ENDER_DRAGON_HURT, 2, 2);
+
+        cache.addWin(winnerPlayer.getUniqueId());
+        cache.addLoses(loserPlayer.getUniqueId());
 
         ArenaAgent.clearArena(duel.getArena());
-        duel.setStatus(DuelStatus.ENDED);
+
     }
 }
